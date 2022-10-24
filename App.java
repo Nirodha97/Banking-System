@@ -12,8 +12,8 @@ public class App{
 
         
         //app.depositeIsuru();
-		app.withdrawIsuru();
-		//app.depositeNirogya();
+		//app.withdrawIsuru();
+		app.depositeNirogya();
 		//app.withdrawNirogya();
         
         
