@@ -1,3 +1,4 @@
+import java.util.Scanner;
 
 public class App{
 
@@ -5,22 +6,33 @@ public class App{
     String bankLocation;
     public static void main(String args[]){
         App app = new App();
-        System.out.println("\n        Bank Statement          ");
         System.out.println("\n#Banking System Application");
-       // Scanner scanner= new Scanner(System.in);
         app.bankDetails();
-
+        app.userLogin();
+    
         
-        //app.depositeIsuru();
-		//app.withdrawIsuru();
-		app.depositeNirogya();
-		//app.withdrawNirogya();
-        
-        
-
-
     }
 
+    
+
+    public void userLogin(){
+        Scanner scanner= new Scanner(System.in);
+        System.out.println(" 1 - Customer");
+        System.out.println(" 2 - Manager"); 
+        System.out.print("Choose your login type(1/2) : ");
+
+        int loginType= scanner.nextInt();
+        if(loginType==1){
+            System.out.println("Logged in as a Customer \n");
+            customerOperations();
+        }else if(loginType==2){
+            System.out.println("Logged in as a Manager \n");
+        }else{
+            System.out.println("Invalid login type ");
+        }
+    }
+
+    //Bank Details
     public void bankDetails(){
         Bank bank = new Bank();
         bank.setBankName("Bank 001");
@@ -31,38 +43,35 @@ public class App{
 
     }
 
-    	//Isuru
-	public void depositeIsuru() {
-		Isuru isuru = new Isuru();
-		double depositeAmount= isuru.deposite(1500);
-		double bonus = isuru.getBonus();
-		System.out.println("Deposite Ammount : "+depositeAmount);
-		System.out.println("Deposite Bonus : "+bonus);
-	}
-	
-	public void withdrawIsuru() {
-		Isuru isuru = new Isuru();
-		double withdrawAmount= isuru.withdraw(1500);
-		double charge = isuru.getWithdrawalCharge();
-		System.out.println("Withdrawal Ammount : "+withdrawAmount);
-		System.out.println("Withdrawal Charge : "+charge);
-	}
-	
-	
-	//Nirogya
-	public void depositeNirogya() {
-		Nirogya nirogya = new Nirogya();
-		double depositeAmount= nirogya.deposite(500);
-		double bonus = nirogya.getBonus();
-		System.out.println("Deposite Ammount : "+depositeAmount);
-		System.out.println("Deposite Bonus : "+bonus);
-	}
-	
-	public void withdrawNirogya() {
-		Nirogya nirogya = new Nirogya();
-		double withdrawAmount= nirogya.withdraw(5000);
-		double charge = nirogya.getWithdrawalCharge();
-		System.out.println("Withdrawal Ammount : "+withdrawAmount);
-		System.out.println("Withdrawal Charge : "+charge);
-	}
+    //Customer Operations
+    public void customerOperations(){
+        
+        String type;
+        Isuru isuru = new Isuru();
+        Nirogya nirogya = new Nirogya();
+        Scanner scanner= new Scanner(System.in);
+        //Choose account type
+        System.out.println(" 1 - Isuru");
+        System.out.println(" 2 - Nirogya"); 
+        System.out.println(" 0 - Exit");
+         
+        System.out.print("Enter your account type (1/2) : ");
+        int accountType = scanner.nextInt();
+        if(accountType==1){
+            System.out.println("Selected acoount type : Isuru \n");
+            type="isuru";
+            isuru.account(type);
+        }else if(accountType==2){
+            System.out.println("Selected acoount type : Nirogya \n");
+            type="nirogya";
+            nirogya.account(type);
+        }else if(accountType==0){
+            System.out.println("Exit \n");
+            userLogin();
+        }else{
+            System.out.println("***************Invalid selection***************");
+            customerOperations();
+        }
+       
+    }
 }
