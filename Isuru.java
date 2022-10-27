@@ -43,8 +43,9 @@ public class Isuru extends Account {
       System.out.println(" 3 - Check Balance");
       System.out.println(" 4 - Transfer Money");
       System.out.println(" 5 - View Activity Log");
+      System.out.println(" 6 - Close account");
       System.out.println(" 0 - Exit");
-      System.out.print("Enter your choise (1/2/3/4/5/0) : ");
+      System.out.print("Enter your choise (1/2/3/4/5/6/0) : ");
 
       int operationType = scanner.nextInt();
       switch (operationType) {
@@ -70,6 +71,10 @@ public class Isuru extends Account {
          case 5:
             System.out.println("");
             viewActivityLog(type, accNo, cusId);
+            break;
+         case 6:
+            System.out.println("");
+            closeAccountReq(type, accNo, cusId);
             break;
          case 0:
             System.out.println("");
@@ -751,6 +756,55 @@ public class Isuru extends Account {
                conn.close();
          } catch (SQLException se) {
          }
+         try {
+            if (conn != null)
+               conn.close();
+         } catch (SQLException se) {
+            se.printStackTrace();
+         }
+         account("isuru", accNo, cusId);
+      }
+   }
+
+   public void closeAccountReq(String type, int accNo, int cusId) {
+      Scanner scanner = new Scanner(System.in);
+      System.out.println("Why do you want to close account ?");
+      String description = scanner.nextLine();
+
+      Connection conn = null;
+      try {
+         try {
+            Class.forName("com.mysql.jdbc.Driver");
+         } catch (Exception e) {
+            System.out.println(e);
+         }
+         conn = DriverManager.getConnection(
+               "jdbc:mysql://localhost:3306/banksystem?characterEncoding=latin1&autoReconnect=true&useSSL=false&useTimezone=true&serverTimezone=UTC",
+               "root", "Nirodha@225");
+
+         Calendar calendar = Calendar.getInstance();
+         Date date = new Date(calendar.getTime().getTime());
+         Time time = new Time(calendar.getTime().getTime());
+
+         String query1 = "insert into accounts_closing_requests (customerId, accountNo, description, date,time)"
+               + " values (?, ?, ?, ?, ?);";
+
+         // create the mysql insert preparedstatement
+         PreparedStatement preparedStmt1 = conn.prepareStatement(query1);
+         preparedStmt1.setInt(1, cusId);
+         preparedStmt1.setInt(2, accNo);
+         preparedStmt1.setString(3, description);
+         preparedStmt1.setDate(4, date);
+         preparedStmt1.setTime(5, time);
+
+         // execute the preparedstatement
+         preparedStmt1.execute();
+         System.out.println("\nYour request sent to the manager...\n");
+      } catch (SQLException excep) {
+         excep.printStackTrace();
+      } catch (Exception excep) {
+         excep.printStackTrace();
+      } finally {
          try {
             if (conn != null)
                conn.close();

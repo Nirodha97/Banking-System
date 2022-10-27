@@ -160,7 +160,6 @@ public class App {
         System.out.println(" 1 - Isuru Account");
         System.out.println(" 2 - Nirogya Account");
         System.out.println(" 3 - Change Password");
-        System.out.println(" 4 - Close account");
         System.out.println(" 0 - Exit");
 
         System.out.print("Enter your choice (1/2/3) : ");
@@ -177,8 +176,6 @@ public class App {
             nirogya.account(type, accNo, cusId);
         } else if (accountType == 3) {
             changePassword(cusId);
-        } else if (accountType == 4) {
-            // closeAccountReq(cusId);
         } else if (accountType == 0) {
             System.out.println("Exit \n");
             userLogin();
