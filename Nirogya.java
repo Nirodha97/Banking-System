@@ -42,6 +42,7 @@ public class Nirogya extends Account {
       System.out.println(" 2 - Withdraw");
       System.out.println(" 3 - Check Balance");
       System.out.println(" 4 - Transfer Money");
+      System.out.println(" 5 - View Activity Log");
       System.out.println(" 0 - Exit");
       System.out.print("Enter your choise (1/2/3/4/0) : ");
 
@@ -58,13 +59,17 @@ public class Nirogya extends Account {
             double withdrawAmount = scanner.nextDouble();
             withdraw(withdrawAmount, type, accNo, cusId);
             break;
+         case 3:
+            System.out.println("");
+            checkbalance(type, accNo, cusId);
+            break;
          case 4:
             System.out.println("");
             transferMoney(type, accNo, cusId);
             break;
-         case 3:
+         case 5:
             System.out.println("");
-            checkbalance(type, accNo, cusId);
+            viewActivityLog(type, accNo, cusId);
             break;
          case 0:
             System.out.println("");
@@ -649,6 +654,73 @@ public class Nirogya extends Account {
 
       }
 
+   }
+
+   public void viewActivityLog(String type, int accNo, int cusId) {
+      Scanner scanner = new Scanner(System.in);
+      System.out.println("Select criteria ");
+      System.out.println(" 1 - Past 7 days");
+      System.out.println(" 2 - Past 30 days");
+      // System.out.println(" 0 - Exit");
+      System.out.print("Enter your choise (1/2) : ");
+
+      int input = scanner.nextInt();
+      int duration = 0;
+      if (input == 1) {
+         duration = 7;
+      } else if (input == 2) {
+         duration = 30;
+      }
+      Connection conn = null;
+      Statement stmt = null;
+      try {
+         try {
+            Class.forName("com.mysql.jdbc.Driver");
+         } catch (Exception e) {
+            System.out.println(e);
+         }
+         conn = DriverManager.getConnection(
+               "jdbc:mysql://localhost:3306/banksystem?characterEncoding=latin1&autoReconnect=true&useSSL=false&useTimezone=true&serverTimezone=UTC",
+               "root", "Nirodha@225");
+
+         stmt = conn.createStatement();
+
+         String query1 = "select time,date,description,type,amount from transaction where accountNo ='" + accNo
+               + "'order by id desc limit " + duration + ";";
+
+         ResultSet resultSet = stmt.executeQuery(query1);
+         System.out.println("\n\t\t\t\tBank Statement\n");
+         System.out.println("Time\t\tDate\t\tTransaction Type\tAmount");
+         System.out.println("");
+         while (resultSet.next()) {
+            Time time = resultSet.getTime("time");
+            Date date = resultSet.getDate("date");
+            String transactionType = resultSet.getString("type");
+            double amount = resultSet.getDouble("amount");
+            System.out.println(time + "\t" + date
+                  + "\t" + transactionType + "\t\t" + amount);
+
+         }
+         System.out.println("\n");
+
+      } catch (SQLException excep) {
+         excep.printStackTrace();
+      } catch (Exception excep) {
+         excep.printStackTrace();
+      } finally {
+         try {
+            if (stmt != null)
+               conn.close();
+         } catch (SQLException se) {
+         }
+         try {
+            if (conn != null)
+               conn.close();
+         } catch (SQLException se) {
+            se.printStackTrace();
+         }
+         account("nirogya", accNo, cusId);
+      }
    }
 
 }
