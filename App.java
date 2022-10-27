@@ -1,9 +1,11 @@
 import java.sql.Connection;
+import java.sql.Date;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Time;
 import java.util.Scanner;
 
 public class App {
@@ -42,7 +44,18 @@ public class App {
             }
 
         } else if (loginType == 2) {
-            System.out.println("Logged in as a Manager \n");
+            System.out.print("\nEnter Username : ");
+            String username = scanner.next();
+            System.out.print("Enter Password : ");
+            String password = scanner.next();
+            int manId = managerValidation(username, password);
+            if (manId > 0) {
+                System.out.println("Logged in as a Manager \n");
+                managerOperations(manId);
+            } else {
+                System.out.println("******Invalid Username or Password******\n");
+                userLogin();
+            }
         } else if (loginType == 0) {
             System.out.println("Exit...");
         } else {
@@ -105,6 +118,52 @@ public class App {
 
         }
         return customerId;
+    }
+
+    public int managerValidation(String username, String password) {
+        Connection conn = null;
+        Statement stmt = null;
+        String pw = "";
+        int managerId = 0;
+
+        try {
+            try {
+                Class.forName("com.mysql.jdbc.Driver");
+            } catch (Exception e) {
+                System.out.println(e);
+            }
+            conn = DriverManager.getConnection(
+                    "jdbc:mysql://localhost:3306/banksystem?characterEncoding=latin1&autoReconnect=true&useSSL=false&useTimezone=true&serverTimezone=UTC",
+                    "root", "Nirodha@225");
+            stmt = conn.createStatement();
+            String query1 = "select id from managers where username ='" + username + "' and password='" + password
+                    + "';";
+            ResultSet resultSet = stmt.executeQuery(query1);
+            while (resultSet.next()) {
+                // pw=resultSet.getString("password");
+                managerId = resultSet.getInt("id");
+
+            }
+
+        } catch (SQLException excep) {
+            excep.printStackTrace();
+        } catch (Exception excep) {
+            excep.printStackTrace();
+        } finally {
+            try {
+                if (stmt != null)
+                    conn.close();
+            } catch (SQLException se) {
+            }
+            try {
+                if (conn != null)
+                    conn.close();
+            } catch (SQLException se) {
+                se.printStackTrace();
+            }
+
+        }
+        return managerId;
     }
 
     public int getAccountNumber(String type, int customerId) {
@@ -244,6 +303,144 @@ public class App {
             }
         }
 
+    }
+
+    // Manager Operations
+    public void managerOperations(int manId) {
+
+        Scanner scanner = new Scanner(System.in);
+        System.out.println(" 1 - View customers activity log");
+        System.out.println(" 2 - View account details");
+        System.out.println(" 0 - Exit");
+
+        System.out.print("Enter your choice (1/2/0) : ");
+        int operationType = scanner.nextInt();
+        if (operationType == 1) {
+            viewCustomerActivityLog();
+            managerOperations(manId);
+        } else if (operationType == 2) {
+            viewCustomerAccountDetails();
+            managerOperations(manId);
+        } else if (operationType == 0) {
+            System.out.println("Exit \n");
+            userLogin();
+        } else {
+            System.out.println("***************Invalid selection***************\n");
+            managerOperations(manId);
+        }
+
+    }
+
+    public void viewCustomerActivityLog() {
+        Scanner scanner = new Scanner(System.in);
+        System.out.print("Enter account Number : ");
+        int accNo = scanner.nextInt();
+
+        Connection conn = null;
+        Statement stmt = null;
+        try {
+            try {
+                Class.forName("com.mysql.jdbc.Driver");
+            } catch (Exception e) {
+                System.out.println(e);
+            }
+            conn = DriverManager.getConnection(
+                    "jdbc:mysql://localhost:3306/banksystem?characterEncoding=latin1&autoReconnect=true&useSSL=false&useTimezone=true&serverTimezone=UTC",
+                    "root", "Nirodha@225");
+
+            stmt = conn.createStatement();
+
+            String query1 = "select time,date,description,type,amount from transaction where accountNo ='" + accNo
+                    + "'order by id desc ;";
+
+            ResultSet resultSet = stmt.executeQuery(query1);
+            System.out.println("\n\t\t\tCustomer Activity Log\n");
+            System.out.println("Time\t\tDate\t\tTransaction Type\tAmount");
+            System.out.println("");
+            while (resultSet.next()) {
+                Time time = resultSet.getTime("time");
+                Date date = resultSet.getDate("date");
+                String transactionType = resultSet.getString("type");
+                double amount = resultSet.getDouble("amount");
+                System.out.println(time + "\t" + date
+                        + "\t" + transactionType + "\t\t" + amount);
+
+            }
+            System.out.println("\n");
+
+        } catch (SQLException excep) {
+            excep.printStackTrace();
+        } catch (Exception excep) {
+            excep.printStackTrace();
+        } finally {
+            try {
+                if (stmt != null)
+                    conn.close();
+            } catch (SQLException se) {
+            }
+            try {
+                if (conn != null)
+                    conn.close();
+            } catch (SQLException se) {
+                se.printStackTrace();
+            }
+        }
+    }
+
+    public void viewCustomerAccountDetails() {
+        Scanner scanner = new Scanner(System.in);
+        System.out.print("Enter account Number : ");
+        int accNo = scanner.nextInt();
+
+        Connection conn = null;
+        Statement stmt = null;
+        try {
+            try {
+                Class.forName("com.mysql.jdbc.Driver");
+            } catch (Exception e) {
+                System.out.println(e);
+            }
+            conn = DriverManager.getConnection(
+                    "jdbc:mysql://localhost:3306/banksystem?characterEncoding=latin1&autoReconnect=true&useSSL=false&useTimezone=true&serverTimezone=UTC",
+                    "root", "Nirodha@225");
+
+            stmt = conn.createStatement();
+
+            String query1 = "select id,type,balance,customerId from account where id ='" + accNo
+                    + "';";
+
+            ResultSet resultSet = stmt.executeQuery(query1);
+            System.out.println("\n\tCustomer Account Details\n");
+            System.out.println("AccountNo\tType\tBalance\tCustomerId");
+            System.out.println("");
+            while (resultSet.next()) {
+                int id = resultSet.getInt("id");
+                String type = resultSet.getString("type");
+                double balance = resultSet.getDouble("balance");
+                int customerId = resultSet.getInt("customerId");
+                System.out.println(id + "\t\t" + type
+                        + "\t" + balance + "\t\t" + customerId);
+
+            }
+            System.out.println("\n");
+
+        } catch (SQLException excep) {
+            excep.printStackTrace();
+        } catch (Exception excep) {
+            excep.printStackTrace();
+        } finally {
+            try {
+                if (stmt != null)
+                    conn.close();
+            } catch (SQLException se) {
+            }
+            try {
+                if (conn != null)
+                    conn.close();
+            } catch (SQLException se) {
+                se.printStackTrace();
+            }
+        }
     }
 
 }
