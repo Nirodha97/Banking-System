@@ -1,5 +1,6 @@
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -36,7 +37,7 @@ public class App {
                 System.out.println("Logged in as a Customer \n");
                 customerOperations(cusId);
             } else {
-                System.out.println("******Invalid Username or Password******");
+                System.out.println("******Invalid Username or Password******\n");
                 userLogin();
             }
 
@@ -156,11 +157,13 @@ public class App {
         Nirogya nirogya = new Nirogya();
         Scanner scanner = new Scanner(System.in);
         // Choose account type
-        System.out.println(" 1 - Isuru");
-        System.out.println(" 2 - Nirogya");
+        System.out.println(" 1 - Isuru Account");
+        System.out.println(" 2 - Nirogya Account");
+        System.out.println(" 3 - Change Password");
+        System.out.println(" 4 - Close account");
         System.out.println(" 0 - Exit");
 
-        System.out.print("Enter your account type (1/2) : ");
+        System.out.print("Enter your choice (1/2/3) : ");
         int accountType = scanner.nextInt();
         if (accountType == 1) {
             System.out.println("Selected acoount type : Isuru \n");
@@ -172,6 +175,10 @@ public class App {
             type = "nirogya";
             accNo = getAccountNumber(type, cusId);
             nirogya.account(type, accNo, cusId);
+        } else if (accountType == 3) {
+            changePassword(cusId);
+        } else if (accountType == 4) {
+            // closeAccountReq(cusId);
         } else if (accountType == 0) {
             System.out.println("Exit \n");
             userLogin();
@@ -181,4 +188,65 @@ public class App {
         }
 
     }
+
+    public void changePassword(int cusId) {
+        Scanner scanner = new Scanner(System.in);
+        System.out.print("Enter your current passwrod: ");
+        String inputPassword = scanner.next();
+        String curPassword = "";
+        Connection conn = null;
+        Statement stmt = null;
+        try {
+            try {
+                Class.forName("com.mysql.jdbc.Driver");
+            } catch (Exception e) {
+                System.out.println(e);
+            }
+            conn = DriverManager.getConnection(
+                    "jdbc:mysql://localhost:3306/banksystem?characterEncoding=latin1&autoReconnect=true&useSSL=false&useTimezone=true&serverTimezone=UTC",
+                    "root", "Nirodha@225");
+            // Get my account balance
+            stmt = conn.createStatement();
+            String query1 = "select password from customer where id ='" + cusId + "';";
+            ResultSet resultSet1 = stmt.executeQuery(query1);
+            while (resultSet1.next()) {
+                curPassword = resultSet1.getString("password");
+            }
+            if (inputPassword.equals(curPassword)) {
+                System.out.print("Enter the new passwrod: ");
+                String newPassword = scanner.next();
+                String query2 = "update customer set password = ? where id = ? ;";
+                PreparedStatement preparedStmt1 = conn.prepareStatement(query2);
+                preparedStmt1.setString(1, newPassword);
+                preparedStmt1.setInt(2, cusId);
+
+                // execute the java preparedstatement
+                preparedStmt1.executeUpdate();
+                System.out.println("Password updated Successfully\n");
+                userLogin();
+            } else {
+                System.out.println("Invalid Password !!!\n");
+                changePassword(cusId);
+            }
+
+        } catch (SQLException excep) {
+            excep.printStackTrace();
+        } catch (Exception excep) {
+            excep.printStackTrace();
+        } finally {
+            try {
+                if (stmt != null)
+                    conn.close();
+            } catch (SQLException se) {
+            }
+            try {
+                if (conn != null)
+                    conn.close();
+            } catch (SQLException se) {
+                se.printStackTrace();
+            }
+        }
+
+    }
+
 }

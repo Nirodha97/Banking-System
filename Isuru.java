@@ -44,7 +44,7 @@ public class Isuru extends Account {
       System.out.println(" 4 - Transfer Money");
       System.out.println(" 5 - View Activity Log");
       System.out.println(" 0 - Exit");
-      System.out.print("Enter your choise (1/2/3/4/0) : ");
+      System.out.print("Enter your choise (1/2/3/4/5/0) : ");
 
       int operationType = scanner.nextInt();
       switch (operationType) {
