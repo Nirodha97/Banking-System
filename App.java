@@ -311,15 +311,23 @@ public class App {
         Scanner scanner = new Scanner(System.in);
         System.out.println(" 1 - View customers activity log");
         System.out.println(" 2 - View account details");
+        System.out.println(" 3 - View accounts closing requests ");
+        System.out.println(" 4 - Close Account ");
         System.out.println(" 0 - Exit");
 
-        System.out.print("Enter your choice (1/2/0) : ");
+        System.out.print("Enter your choice (1/2/3/0) : ");
         int operationType = scanner.nextInt();
         if (operationType == 1) {
             viewCustomerActivityLog();
             managerOperations(manId);
         } else if (operationType == 2) {
             viewCustomerAccountDetails();
+            managerOperations(manId);
+        } else if (operationType == 3) {
+            viewCustomerAccountsClosingRequests();
+            managerOperations(manId);
+        } else if (operationType == 4) {
+            closeAccount();
             managerOperations(manId);
         } else if (operationType == 0) {
             System.out.println("Exit \n");
@@ -439,6 +447,106 @@ public class App {
                     conn.close();
             } catch (SQLException se) {
                 se.printStackTrace();
+            }
+        }
+    }
+
+    public void viewCustomerAccountsClosingRequests() {
+        Connection conn = null;
+        Statement stmt = null;
+        try {
+            try {
+                Class.forName("com.mysql.jdbc.Driver");
+            } catch (Exception e) {
+                System.out.println(e);
+            }
+            conn = DriverManager.getConnection(
+                    "jdbc:mysql://localhost:3306/banksystem?characterEncoding=latin1&autoReconnect=true&useSSL=false&useTimezone=true&serverTimezone=UTC",
+                    "root", "Nirodha@225");
+
+            stmt = conn.createStatement();
+
+            String query1 = "select customerId,accountNo,description,date,time from accounts_closing_requests;";
+
+            ResultSet resultSet = stmt.executeQuery(query1);
+            System.out.println("\n\tCustomer Account Closing Requests\n");
+            System.out.println("Date\t\tTime\t\tCustomerId\tAccountNo\tdescription");
+            System.out.println("");
+            while (resultSet.next()) {
+                int customerId = resultSet.getInt("customerId");
+                int accountNo = resultSet.getInt("accountNo");
+                String description = resultSet.getString("description");
+                Time time = resultSet.getTime("time");
+                Date date = resultSet.getDate("date");
+                System.out.println(date + "\t" + time
+                        + "\t\t" + customerId + "\t\t" + accountNo + "\t" + description);
+
+            }
+            System.out.println("\n");
+
+        } catch (SQLException excep) {
+            excep.printStackTrace();
+        } catch (Exception excep) {
+            excep.printStackTrace();
+        } finally {
+            try {
+                if (stmt != null)
+                    conn.close();
+            } catch (SQLException se) {
+            }
+            try {
+                if (conn != null)
+                    conn.close();
+            } catch (SQLException se) {
+                se.printStackTrace();
+            }
+        }
+    }
+
+    public void closeAccount() {
+        Scanner scanner = new Scanner(System.in);
+        System.out.print("Enter the account number to close account : ");
+        int accNo = scanner.nextInt();
+        System.out.print("Are you sure you want to delete accout " + accNo + "? (y/n)) : ");
+        String del = scanner.next();
+        if (del.equalsIgnoreCase("y")) {
+
+            Connection conn = null;
+            Statement stmt = null;
+            try {
+                try {
+                    Class.forName("com.mysql.jdbc.Driver");
+                } catch (Exception e) {
+                    System.out.println(e);
+                }
+                conn = DriverManager.getConnection(
+                        "jdbc:mysql://localhost:3306/banksystem?characterEncoding=latin1&autoReconnect=true&useSSL=false&useTimezone=true&serverTimezone=UTC",
+                        "root", "Nirodha@225");
+
+                stmt = conn.createStatement();
+
+                String query1 = "DELETE FROM account WHERE id='" + accNo + "';";
+
+                stmt.executeUpdate(query1);
+                System.out.println("Account " + accNo + " Successfully Deleted...");
+                System.out.println("\n");
+
+            } catch (SQLException excep) {
+                excep.printStackTrace();
+            } catch (Exception excep) {
+                excep.printStackTrace();
+            } finally {
+                try {
+                    if (stmt != null)
+                        conn.close();
+                } catch (SQLException se) {
+                }
+                try {
+                    if (conn != null)
+                        conn.close();
+                } catch (SQLException se) {
+                    se.printStackTrace();
+                }
             }
         }
     }
