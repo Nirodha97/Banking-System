@@ -36,12 +36,13 @@ public class Isuru extends Account{
 		this.withdrawalCharge = withdrawalCharge;
 	}
 
-    public void account(String type){
+    public void account(String type,int accNo,int cusId){
         Scanner scanner= new Scanner(System.in);
         //Choose operation type
         System.out.println(" 1 - Deposite");
         System.out.println(" 2 - Withdraw"); 
         System.out.println(" 3 - Check Balance"); 
+        System.out.println(" 4 - Transfer Money");
         System.out.println(" 0 - Exit");
         System.out.print("Enter your choise (1/2/3/0) : ");
        
@@ -49,16 +50,19 @@ public class Isuru extends Account{
        switch(operationType){
            case 1 : System.out.print("Deposite Ammount : ");
                     double depositeAmount= scanner.nextDouble();
-                    deposite(depositeAmount,type);
+                    deposite(depositeAmount,type,accNo,cusId);
                     break;
 
            case 2 : System.out.print("Withdraw Ammount : ");
                     double withdrawAmount= scanner.nextDouble();
-                    withdraw(withdrawAmount,type);
+                    withdraw(withdrawAmount,type,accNo,cusId);
                     break;
            case 3 : System.out.println("");
-                    checkbalance(type);
+                    checkbalance(type,accNo,cusId);
                     break;
+           case 4 : System.out.println("");
+                   // transferMoney(type,accNo,cusId);
+                    break;                   
            case 0 : System.out.println("");
                     break;
            default: System.out.println("***************Invalid selection***************"); 
@@ -95,7 +99,7 @@ public class Isuru extends Account{
     }
 
     //Deposite money
-    public void deposite(double depositeAmount,String type) {
+    public void deposite(double depositeAmount,String type,int accNo,int cusId) {
       Connection conn = null;
       Statement stmt = null;
       double balance=0;
@@ -110,7 +114,7 @@ public class Isuru extends Account{
        conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/banksystem?characterEncoding=latin1&autoReconnect=true&useSSL=false&useTimezone=true&serverTimezone=UTC", "root", "Nirodha@225");
        //System.out.println("Connection is created successfully:");
        stmt = conn.createStatement();
-       int accountNo=1;
+       int accountNo=accNo;
        String transactionType="deposite";
        double amount=depositeAmount+getBonus();
        String description="";
@@ -137,12 +141,13 @@ public class Isuru extends Account{
       // execute the preparedstatement
       preparedStmt1.execute();
       
-
+      //System.out.println(query1);
 
       //////////////////////////////////////Get balance////////////////////////////////////////
 
          stmt = conn.createStatement();
-         String query2 = "select balance from account where customerId =1 and type='isuru';";
+         String query2 = "select balance from account where id ='"+accNo+"';";
+       //  System.out.println(query2);
          ResultSet resultSet = stmt.executeQuery(query2);
          while (resultSet.next()) {
             balance=resultSet.getDouble("balance");
@@ -152,9 +157,11 @@ public class Isuru extends Account{
 
       balance=balance+amount+getBonus();
       ////////////////////////////////////////Update account balance////////////////////////////////
-      String query3 = "update account set balance = ? where customerId = 1 and type='isuru'";
+      String query3 = "update account set balance = ? where id = ? ;";
+     // System.out.println(query3);
       PreparedStatement preparedStmt2 = conn.prepareStatement(query3);
       preparedStmt2.setDouble(1, balance);
+      preparedStmt2.setInt(2, accNo);
 
       // execute the java preparedstatement
       preparedStmt2.executeUpdate();
@@ -193,23 +200,12 @@ public class Isuru extends Account{
             //System.out.println("|   Account Balance : "+(balance+depositeAmount+getBonus())+"     |");
             System.out.println("|                                |");
             System.out.println("|--------------------------------|\n");
-            account("isuru");	
+            account("isuru",accNo,cusId);	
 	}
 	
-	//Withdraw money
-	public void withdraw1(double withdrawAmount,String type) {
-        System.out.println("\n        Bank Statement          \n");
-        System.out.println("#Account Type : Isuru ");
-		System.out.println("#Transaction Type : Withdraw ");
-		setWithdrawalCharge(5.00);
-		
-	
-        System.out.println("Withdrawal Ammount : "+withdrawAmount);
-		System.out.println("Withdrawal Charge : "+getWithdrawalCharge());
-	}
 
-       //Deposite money
-       public void withdraw(double withdrawAmount,String type) {
+       //Withdraw money
+       public void withdraw(double withdrawAmount,String type,int accNo, int cusId) {
          Connection conn = null;
          Statement stmt = null;
          double balance=0;
@@ -223,7 +219,7 @@ public class Isuru extends Account{
           conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/banksystem?characterEncoding=latin1&autoReconnect=true&useSSL=false&useTimezone=true&serverTimezone=UTC", "root", "Nirodha@225");
           //System.out.println("Connection is created successfully:");
           stmt = conn.createStatement();
-          int accountNo=1;
+          int accountNo=accNo;
           String transactionType="withdraw";
           double amount=withdrawAmount+getBonus();
           String description="";
@@ -234,7 +230,7 @@ public class Isuru extends Account{
           //Set bonus
    
           //System.out.println(date);
-   
+         // System.out.println("accNo : "+accNo);
           String query1 = "insert into transaction (accountNo, type, amount, description, date,time)"
           + " values (?, ?, ?, ?, ?,?);";
           
@@ -255,19 +251,20 @@ public class Isuru extends Account{
          //////////////////////////////////////Get balance////////////////////////////////////////
    
             stmt = conn.createStatement();
-            String query2 = "select balance from account where customerId =1 and type='isuru';";
+            String query2 = "select balance from account where id ='"+accNo+"';";
             ResultSet resultSet = stmt.executeQuery(query2);
             while (resultSet.next()) {
                balance=resultSet.getDouble("balance");
                //System.out.println(balance);
             }
-   
+           // System.out.println("accNo : "+accNo);
    
          balance=balance-amount-getWithdrawalCharge();
          ////////////////////////////////////////Update account balance////////////////////////////////
-         String query3 = "update account set balance = ? where customerId = 1 and type='isuru'";
+         String query3 = "update account set balance = ? where id = ? ;";
          PreparedStatement preparedStmt2 = conn.prepareStatement(query3);
          preparedStmt2.setDouble(1, balance);
+         preparedStmt2.setInt(2, accNo);
    
          // execute the java preparedstatement
          preparedStmt2.executeUpdate();
@@ -306,11 +303,11 @@ public class Isuru extends Account{
                //System.out.println("|   Account Balance : "+(balance+depositeAmount+getBonus())+"     |");
                System.out.println("|                                |");
                System.out.println("|--------------------------------|\n");
-               account("isuru");	
+               account("isuru",accNo,cusId);	
       }
 
     //Check balance
-    public void checkbalance(String type){
+    public void checkbalance(String type,int accNo,int cusId){
 
         Connection conn = null;
         Statement stmt = null;
@@ -325,7 +322,9 @@ public class Isuru extends Account{
          conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/banksystem?characterEncoding=latin1&autoReconnect=true&useSSL=false&useTimezone=true&serverTimezone=UTC", "root", "Nirodha@225");
          //System.out.println("Connection is created successfully:");
          stmt = conn.createStatement();
-         String query1 = "select balance from account where customerId =1 and type='isuru';";
+         //System.out.println("accNo : "+accNo);
+         String query1 = "select balance from account where id ='"+accNo+"';";
+        // System.out.println(query1);
          ResultSet resultSet = stmt.executeQuery(query1);
          while (resultSet.next()) {
             balance=resultSet.getDouble("balance");
@@ -355,10 +354,14 @@ public class Isuru extends Account{
             } catch (SQLException se) {
                se.printStackTrace();
             }  
-            account("isuru");
+            account("isuru",accNo,cusId);
          }
          
     }
+
+
+
+    
 	
 
 	

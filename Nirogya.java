@@ -34,7 +34,7 @@ public class Nirogya extends Account {
 		this.withdrawalCharge = withdrawalCharge;
 	}
 
-    public void account(String type){
+    public void account(String type,int accNo){
         Scanner scanner= new Scanner(System.in);
         //Choose operation type
         System.out.println(" 1 - Deposite");
@@ -47,15 +47,15 @@ public class Nirogya extends Account {
        switch(operationType){
            case 1 : System.out.print("Deposite Ammount : ");
                     double depositeAmount= scanner.nextDouble();
-                    deposite(depositeAmount,type);
+                    deposite(depositeAmount,type,accNo);
                     break;
 
            case 2 : System.out.print("Withdraw Ammount : ");
                     double withdrawAmount= scanner.nextDouble();
-                    withdraw(withdrawAmount,type);
+                    withdraw(withdrawAmount,type,accNo);
                     break;
            case 3 : System.out.println("");
-                    checkbalance(type);
+                    checkbalance(type,accNo);
                     break;
            case 0 : System.out.println("");
                     break;
@@ -64,7 +64,7 @@ public class Nirogya extends Account {
     }
 
         //Deposite money
-        public void deposite(double depositeAmount,String type) {
+        public void deposite(double depositeAmount,String type,int accNo) {
             Connection conn = null;
             Statement stmt = null;
             double balance=0;
@@ -79,7 +79,7 @@ public class Nirogya extends Account {
              conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/banksystem?characterEncoding=latin1&autoReconnect=true&useSSL=false&useTimezone=true&serverTimezone=UTC", "root", "Nirodha@225");
              //System.out.println("Connection is created successfully:");
              stmt = conn.createStatement();
-             int accountNo=1;
+             int accountNo=accNo;
              String transactionType="deposite";
              double amount=depositeAmount+getBonus();
              String description="";
@@ -111,7 +111,7 @@ public class Nirogya extends Account {
             //////////////////////////////////////Get balance////////////////////////////////////////
       
                stmt = conn.createStatement();
-               String query2 = "select balance from account where customerId =1 and type='nirogya';";
+               String query2 = "select balance from account where id ='"+accNo+"';";
                ResultSet resultSet = stmt.executeQuery(query2);
                while (resultSet.next()) {
                   balance=resultSet.getDouble("balance");
@@ -121,9 +121,10 @@ public class Nirogya extends Account {
       
             balance=balance+amount+getBonus();
             ////////////////////////////////////////Update account balance////////////////////////////////
-            String query3 = "update account set balance = ? where customerId = 1 and type='nirogya'";
+            String query3 = "update account set balance = ? where id = ? ;";
             PreparedStatement preparedStmt2 = conn.prepareStatement(query3);
             preparedStmt2.setDouble(1, balance);
+            preparedStmt2.setInt(2, accNo);
       
             // execute the java preparedstatement
             preparedStmt2.executeUpdate();
@@ -162,23 +163,12 @@ public class Nirogya extends Account {
                   //System.out.println("|   Account Balance : "+(balance+depositeAmount+getBonus())+"     |");
                   System.out.println("|                                |");
                   System.out.println("|--------------------------------|\n");
-                  account("nirogya");	
+                  account("nirogya",accNo);	
           }
 	
-	//Withdraw money
-	public void wit1hdraw(double withdrawAmount,String type) {
-        System.out.println("\n        Bank Statement          \n");
-        System.out.println("#Account Type : Nirogya ");
-		System.out.println("#Transaction Type : Withdraw ");
-		setWithdrawalCharge(5.00);
-		
-	
-        System.out.println("Withdrawal Ammount : "+withdrawAmount);
-		System.out.println("Withdrawal Charge : "+getWithdrawalCharge());
-	}
 
     //Withdraw money
-    public void withdraw(double withdrawAmount,String type) {
+    public void withdraw(double withdrawAmount,String type,int accNo) {
       Connection conn = null;
       Statement stmt = null;
       double balance=0;
@@ -192,7 +182,7 @@ public class Nirogya extends Account {
        conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/banksystem?characterEncoding=latin1&autoReconnect=true&useSSL=false&useTimezone=true&serverTimezone=UTC", "root", "Nirodha@225");
        //System.out.println("Connection is created successfully:");
        stmt = conn.createStatement();
-       int accountNo=1;
+       int accountNo=accNo;
        String transactionType="withdraw";
        double amount=withdrawAmount+getBonus();
        String description="";
@@ -224,7 +214,7 @@ public class Nirogya extends Account {
       //////////////////////////////////////Get balance////////////////////////////////////////
 
          stmt = conn.createStatement();
-         String query2 = "select balance from account where customerId =1 and type='nirogya';";
+         String query2 = "select balance from account where id ='"+accNo+"';";
          ResultSet resultSet = stmt.executeQuery(query2);
          while (resultSet.next()) {
             balance=resultSet.getDouble("balance");
@@ -234,9 +224,10 @@ public class Nirogya extends Account {
 
       balance=balance-amount-getWithdrawalCharge();
       ////////////////////////////////////////Update account balance////////////////////////////////
-      String query3 = "update account set balance = ? where customerId = 1 and type='nirogya'";
+      String query3 = "update account set balance = ? where id = ? ;";
       PreparedStatement preparedStmt2 = conn.prepareStatement(query3);
       preparedStmt2.setDouble(1, balance);
+      preparedStmt2.setInt(2, accNo);
 
       // execute the java preparedstatement
       preparedStmt2.executeUpdate();
@@ -275,14 +266,14 @@ public class Nirogya extends Account {
             //System.out.println("|   Account Balance : "+(balance+depositeAmount+getBonus())+"     |");
             System.out.println("|                                |");
             System.out.println("|--------------------------------|\n");
-            account("nirogya");	
+            account("nirogya",accNo);	
    }
 
 
 
 
          //Check balance
-    public void checkbalance(String type){
+    public void checkbalance(String type,int accNo){
 
       Connection conn = null;
       Statement stmt = null;
@@ -297,7 +288,7 @@ public class Nirogya extends Account {
        conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/banksystem?characterEncoding=latin1&autoReconnect=true&useSSL=false&useTimezone=true&serverTimezone=UTC", "root", "Nirodha@225");
        //System.out.println("Connection is created successfully:");
        stmt = conn.createStatement();
-       String query1 = "select balance from account where customerId =1 and type='nirogya';";
+       String query1 =  "select balance from account where id ='"+accNo+"';";
        ResultSet resultSet = stmt.executeQuery(query1);
        while (resultSet.next()) {
           balance=resultSet.getDouble("balance");
@@ -327,7 +318,7 @@ public class Nirogya extends Account {
           } catch (SQLException se) {
              se.printStackTrace();
           }  
-          account("nirogya");
+          account("nirogya",accNo);
        }
        
   }
