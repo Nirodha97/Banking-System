@@ -41,8 +41,9 @@ public class Nirogya extends Account {
       System.out.println(" 1 - Deposite");
       System.out.println(" 2 - Withdraw");
       System.out.println(" 3 - Check Balance");
+      System.out.println(" 4 - Transfer Money");
       System.out.println(" 0 - Exit");
-      System.out.print("Enter your choise (1/2/3/0) : ");
+      System.out.print("Enter your choise (1/2/3/4/0) : ");
 
       int operationType = scanner.nextInt();
       switch (operationType) {
@@ -341,17 +342,18 @@ public class Nirogya extends Account {
       System.out.print("Enter your choise (1/2/0) : ");
 
       int transferType = scanner.nextInt();
+      System.out.print("Enter the account Number : ");
+      int transAccNo = scanner.nextInt();
+      System.out.print("Enter the amount : ");
+      int transAmount = scanner.nextInt();
       if (transferType == 1) {
-         System.out.print("Enter the account Number : ");
-         int transAccNo = scanner.nextInt();
-         System.out.print("Enter the amount : ");
-         int transAmount = scanner.nextInt();
          ownAccountTransfer(accNo, transAccNo, transAmount);
          account(type, accNo, cusId);
       } else if (transferType == 2) {
-
+         thirdPartyAccountTransfer(accNo, transAccNo, transAmount);
+         account(type, accNo, cusId);
       } else if (transferType == 0) {
-
+         account(type, accNo, cusId);
       } else {
          System.out.println("Invalid selection");
       }
@@ -468,6 +470,153 @@ public class Nirogya extends Account {
                      System.out.println("|   Account Number : " + transAccNo + "           |");
                      System.out.println("|   Account type : Isuru         |");
                      System.out.println("|   Transfered Ammount : " + transAmount + "  |");
+                     System.out.println("|                                |");
+                     System.out.println("|--------------------------------|\n");
+                  } catch (Exception excep) {
+                     excep.printStackTrace();
+                  }
+               } catch (Exception excep) {
+                  excep.printStackTrace();
+               }
+            } catch (Exception excep) {
+               excep.printStackTrace();
+            }
+         }
+
+      } catch (SQLException excep) {
+         excep.printStackTrace();
+      } catch (Exception excep) {
+         excep.printStackTrace();
+      } finally {
+         try {
+            if (stmt != null)
+               conn.close();
+         } catch (SQLException se) {
+         }
+         try {
+            if (conn != null)
+               conn.close();
+         } catch (SQLException se) {
+            se.printStackTrace();
+         }
+
+      }
+
+   }
+
+   // Thirdpart account transfer
+   public void thirdPartyAccountTransfer(int myAcc, int transAccNo, double transAmount) {
+      Connection conn = null;
+      Statement stmt = null;
+      double mybalance = 0;
+      double transAccBalance = 0;
+      double serviceCharge = 50.0;
+      try {
+         try {
+            Class.forName("com.mysql.jdbc.Driver");
+         } catch (Exception e) {
+            System.out.println(e);
+         }
+         conn = DriverManager.getConnection(
+               "jdbc:mysql://localhost:3306/banksystem?characterEncoding=latin1&autoReconnect=true&useSSL=false&useTimezone=true&serverTimezone=UTC",
+               "root", "Nirodha@225");
+         // Get my account balance
+         stmt = conn.createStatement();
+         String query1 = "select balance from account where id ='" + myAcc + "';";
+         ResultSet resultSet1 = stmt.executeQuery(query1);
+         while (resultSet1.next()) {
+            mybalance = resultSet1.getDouble("balance");
+         }
+         // System.out.println("My account balance: " + mybalance);
+
+         // Get transfer account balance
+
+         stmt = conn.createStatement();
+         String query2 = "select balance from account where id ='" + transAccNo + "';";
+         ResultSet resultSet2 = stmt.executeQuery(query2);
+         while (resultSet2.next()) {
+            transAccBalance = resultSet2.getDouble("balance");
+         }
+         // System.out.println("My account balance: " + transAccBalance);
+
+         if ((transAmount + serviceCharge) > mybalance) {
+            System.out.println("You have not sufficent money..");
+            System.out.println("Transaction declined...");
+         } else {
+            try {
+               // Update my account balance
+               mybalance = mybalance - transAmount - serviceCharge;
+               String query3 = "update account set balance = ? where id = ? ;";
+               PreparedStatement preparedStmt1 = conn.prepareStatement(query3);
+               preparedStmt1.setDouble(1, mybalance);
+               preparedStmt1.setInt(2, myAcc);
+
+               // execute the java preparedstatement
+               preparedStmt1.executeUpdate();
+               try {
+                  // Update trans account balance
+                  transAccBalance = transAccBalance + transAmount;
+                  String query4 = "update account set balance = ? where id = ? ;";
+                  PreparedStatement preparedStmt2 = conn.prepareStatement(query4);
+                  preparedStmt2.setDouble(1, transAccBalance);
+                  preparedStmt2.setInt(2, transAccNo);
+
+                  // execute the java preparedstatement
+                  preparedStmt2.executeUpdate();
+
+                  try {
+
+                     int accountNo1 = myAcc;
+                     String transactionType1 = "Transfer money";
+                     int accountNo2 = transAccNo;
+                     String transactionType2 = "Receive money";
+                     double amount1 = transAmount + serviceCharge;
+                     double amount2 = transAmount;
+                     String description = "";
+                     Calendar calendar = Calendar.getInstance();
+                     Date date = new Date(calendar.getTime().getTime());
+                     Time time = new Time(calendar.getTime().getTime());
+
+                     // My account transaction details
+                     String query5 = "insert into transaction (accountNo, type, amount, description, date,time)"
+                           + " values (?, ?, ?, ?, ?,?);";
+
+                     // create the mysql insert preparedstatement
+                     PreparedStatement preparedStmt3 = conn.prepareStatement(query5);
+                     preparedStmt3.setInt(1, accountNo1);
+                     preparedStmt3.setString(2, transactionType1);
+                     preparedStmt3.setDouble(3, amount1);
+                     preparedStmt3.setString(4, description);
+                     preparedStmt3.setDate(5, date);
+                     preparedStmt3.setTime(6, time);
+
+                     // execute the preparedstatement
+                     preparedStmt3.execute();
+
+                     // Transfer account transaction details
+                     String query6 = "insert into transaction (accountNo, type, amount, description, date,time)"
+                           + " values (?, ?, ?, ?, ?,?);";
+
+                     // create the mysql insert preparedstatement
+                     PreparedStatement preparedStmt4 = conn.prepareStatement(query6);
+                     preparedStmt4.setInt(1, accountNo2);
+                     preparedStmt4.setString(2, transactionType2);
+                     preparedStmt4.setDouble(3, amount2);
+                     preparedStmt4.setString(4, description);
+                     preparedStmt4.setDate(5, date);
+                     preparedStmt4.setTime(6, time);
+
+                     // execute the preparedstatement
+                     preparedStmt4.execute();
+
+                     System.out.println("\n|--------------------------------|");
+                     System.out.println("|                                |");
+                     System.out.println("|        Bank Statement          |");
+                     System.out.println("|                                |");
+                     System.out.println("|   Account Number : " + transAccNo + "           |");
+                     // System.out.println("| Account type : Nirogya |");
+                     System.out.println("|   Transfered Ammount : " + transAmount + "  |");
+                     System.out.println("|   Service Charge : " + serviceCharge + "  |");
                      System.out.println("|                                |");
                      System.out.println("|--------------------------------|\n");
                   } catch (Exception excep) {
